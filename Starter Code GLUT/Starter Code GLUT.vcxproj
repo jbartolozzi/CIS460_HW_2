@@ -79,14 +79,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="furniture.cpp" />
+    <ClCompile Include="node.cpp" />
     <ClCompile Include="primative.cpp" />
     <ClCompile Include="glew.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sceneGraph.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="furniture.h" />
     <ClInclude Include="glew.h" />
+    <ClInclude Include="node.h" />
     <ClInclude Include="primative.h" />
+    <ClInclude Include="sceneGraph.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="diffuseFrag.frag" />

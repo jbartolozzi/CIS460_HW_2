@@ -50,6 +50,9 @@ void primative::drawPrimative(unsigned int _vbo, unsigned int _cbo, unsigned int
 	glDisableVertexAttribArray(normalLocation);
 }
 
+void primative::constructBuffers() {
+}
+
 //####################################################################################################################
 //    v7----- v6
 //   /|      /|
@@ -59,6 +62,7 @@ void primative::drawPrimative(unsigned int _vbo, unsigned int _cbo, unsigned int
 //  |/      |/
 //  v0------v1
 cube::cube() {
+	isSelected = false;
 	origin  = glm::vec4(0.f,0.f,0.f,1.0);
 	color = glm::vec3(1.f,1.f,0.f);
 
@@ -112,6 +116,7 @@ cube::cube() {
 //  |/      |/
 //  v0------v1
 cube::cube(glm::vec3 _origin, glm::vec3 _color, glm::vec3 dimensions) {
+	isSelected = false;
 	float width = dimensions.x;
 	float height = dimensions.y;
 	float depth = dimensions.z;
@@ -175,10 +180,19 @@ void cube::constructBuffers() {
 
 	vbo = vertices;
 
-	for (int i = 0; i < points.size(); i++) {
-		colors.push_back(color.r);
-		colors.push_back(color.g);
-		colors.push_back(color.b);
+	if (isSelected == false) {
+		for (int i = 0; i < points.size(); i++) {
+			colors.push_back(color.r);
+			colors.push_back(color.g);
+			colors.push_back(color.b);
+		}
+	}
+	else {
+		for (int i = 0; i < points.size(); i++) {
+			colors.push_back(0.8f);
+			colors.push_back(0.f);
+			colors.push_back(0.f);
+		}
 	}
 
 	cbo = colors;
@@ -254,18 +268,10 @@ void cube::constructBuffers() {
 }
 
 //################################################################################################################################
-struct face {
-	int ind1;
-	int ind2;
-	int ind3;
-	face(int i1, int i2, int i3) {
-		ind1 = i1;
-		ind2 = i2;
-		ind3 = i3;
-	}
-};
+
 
 sphere::sphere() {
+	isSelected = false;
 	origin  = glm::vec4(0.f,1.f,0.f,1.0);
 	color = glm::vec3(0.f,1.f,0.f);
 	float t = (1.f + glm::sqrt(5.0)) / 2.f;
@@ -311,9 +317,7 @@ sphere::sphere() {
 	faces.push_back(face(8,6,7));
 	faces.push_back(face(9,8,1));
 
-	vector<face> faces2;
-
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 2; i++) {
 		for (int i = 0; i < faces.size(); i++) {
 			int a = getMidPoint(faces[i].ind1,faces[i].ind2);
 			int b = getMidPoint(faces[i].ind2,faces[i].ind3);
@@ -330,23 +334,6 @@ sphere::sphere() {
 		points.push_back(icoPoints[i]);
 	}
 
-	vector<float> vertices;
-	for (int i = 0; i < icoPoints.size(); i++ ) {
-		vertices.push_back(icoPoints[i].x);
-		vertices.push_back(icoPoints[i].y);
-		vertices.push_back(icoPoints[i].z);
-		vertices.push_back(1.f);
-
-	}
-	vbo = vertices;
-
-	vector<unsigned short> index;
-	for (int i = 0; i < faces2.size(); i++) {
-		index.push_back(faces2[i].ind1);
-		index.push_back(faces2[i].ind2);
-		index.push_back(faces2[i].ind3);
-	}
-	ibo = index;
 	constructBuffers();
 }
 
@@ -360,7 +347,78 @@ int sphere::getMidPoint(int a, int b) {
 	return (oop);
 }
 
-sphere::sphere(glm::vec3 _origin, glm::vec3 _color, glm::vec2 dimensions) {
+sphere::sphere(glm::vec3 _origin, glm::vec3 _color, float radius) {
+	isSelected = false;
+	origin = glm::vec4(_origin,1.0);
+	color = _color;
+
+	glm::mat4 transOrigin = glm::translate(_origin);
+	glm::mat4 scaleSphere = glm::scale(radius,radius,radius);
+
+	float t = (1.f + glm::sqrt(5.0)) / 2.f;
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(-1.f,  t,0.f)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3( 1.f,  t,0.f)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(-1.f, -t,0.f)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3( 1.f, -t,0.f)),1.f));
+
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(0.f, -1.f,  t)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(0.f,  1.f,  t)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(0.f, -1.f, -t)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(0.f,  1.f, -t)),1.f));
+
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3( t, 0.f, -1)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3( t, 0.f,  1)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(-t, 0.f, -1)),1.f));
+	icoPoints.push_back(glm::vec4(glm::normalize(glm::vec3(-t, 0.f,  1)),1.f));
+
+	// faces around point 0
+	vector<face> faces;
+	faces.push_back(face(0,11,5));
+	faces.push_back(face(0,5,1));
+	faces.push_back(face(0,1,7));
+	faces.push_back(face(0,7,10));
+	faces.push_back(face(0,10,11));
+
+	faces.push_back(face(1,5,9));
+	faces.push_back(face(5,11,4));
+	faces.push_back(face(11,10,2));
+	faces.push_back(face(10,7,6));
+	faces.push_back(face(7,1,8));
+
+	faces.push_back(face(3,9,4));
+	faces.push_back(face(3,4,2));
+	faces.push_back(face(3,2,6));
+	faces.push_back(face(3,6,8));
+	faces.push_back(face(3,8,9));
+
+	faces.push_back(face(4,9,5));
+	faces.push_back(face(2,4,11));
+	faces.push_back(face(6,2,10));
+	faces.push_back(face(8,6,7));
+	faces.push_back(face(9,8,1));
+
+	for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < faces.size(); i++) {
+			int a = getMidPoint(faces[i].ind1,faces[i].ind2);
+			int b = getMidPoint(faces[i].ind2,faces[i].ind3);
+			int c = getMidPoint(faces[i].ind3,faces[i].ind1);
+
+			faces2.push_back(face(faces[i].ind1,a,c));
+			faces2.push_back(face(faces[i].ind2,b,a));
+			faces2.push_back(face(faces[i].ind3,c,b));
+			faces2.push_back(face(a,b,c));
+		}	
+	}
+	
+	for(int i = 0; i < icoPoints.size(); i++) {
+		icoPoints[i] = transOrigin * scaleSphere * icoPoints[i];
+	}
+
+	for(int i = 0; i < icoPoints.size(); i++) {
+		points.push_back(icoPoints[i]);
+	}
+
+	constructBuffers();
 }
 
 
@@ -370,19 +428,44 @@ void sphere::constructBuffers() {
 	vector<float> normals;
 	vector<float> colors;
 	vector<unsigned short> index;
+	vector<float> vertices;
 
+	for (int i = 0; i < icoPoints.size(); i++ ) {
+		vertices.push_back(icoPoints[i].x);
+		vertices.push_back(icoPoints[i].y);
+		vertices.push_back(icoPoints[i].z);
+		vertices.push_back(1.f);
+
+	}
+	vbo = vertices;
+
+	for (int i = 0; i < faces2.size(); i++) {
+		index.push_back(faces2[i].ind1);
+		index.push_back(faces2[i].ind2);
+		index.push_back(faces2[i].ind3);
+	}
+	ibo = index;
 	
-	for (int i = 0; i < points.size(); i++) {
-		colors.push_back(color.r);
-		colors.push_back(color.g);
-		colors.push_back(color.b);
+	if (isSelected == false) {
+		for (int i = 0; i < icoPoints.size(); i++) {
+			colors.push_back(color.r);
+			colors.push_back(color.g);
+			colors.push_back(color.b);
+		}
+	}
+	else {
+		for (int i = 0; i < icoPoints.size(); i++) {
+			colors.push_back(0.8f);
+			colors.push_back(0.f);
+			colors.push_back(0.f);
+		}
 	}
 	cbo = colors;
 	
-	for (int i = 0; i < points.size(); i++) {
-		normals.push_back(points[i].x);
-		normals.push_back(points[i].y);
-		normals.push_back(points[i].z);
+	for (int i = 0; i < icoPoints.size(); i++) {
+		normals.push_back(icoPoints[i].x);
+		normals.push_back(icoPoints[i].y);
+		normals.push_back(icoPoints[i].z);
 		normals.push_back(0.f);
 	}
 
@@ -392,6 +475,7 @@ void sphere::constructBuffers() {
 //###############################################################################################################################
 
 cylinder::cylinder() {
+	isSelected = false;
 	height = 2;
 	numSegments = 24;
 	float radius = 1;
@@ -432,6 +516,7 @@ cylinder::cylinder() {
 }
 
 cylinder::cylinder(glm::vec3 _origin, glm::vec3 _color, glm::vec2 dimensions) {
+	isSelected = false;
 	float height = dimensions.y;
 	numSegments = 24;
 	float radius = dimensions.x;
@@ -485,12 +570,22 @@ void cylinder::constructBuffers() {
 	}
 	vbo = vertices;
 
-	for (int i = 0; i < points.size(); i++) {
-		colors.push_back(color.r);
-		colors.push_back(color.g);
-		colors.push_back(color.b);
-	}
+	if (isSelected == false) {
+		for (int i = 0; i < points.size(); i++) {
+			colors.push_back(color.r);
+			colors.push_back(color.g);
+			colors.push_back(color.b);
+		}
 
+		
+	}
+	else {
+		for (int i = 0; i < points.size(); i++) {
+			colors.push_back(0.8f);
+			colors.push_back(0.f);
+			colors.push_back(0.f);
+		}
+	}
 	cbo = colors;
 
 	/*for (int i = 0; i <= numSegments * 2;) {

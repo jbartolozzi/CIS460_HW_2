@@ -1,6 +1,7 @@
 #ifndef PRIMATIVE
 #define PRIMATIVE
 #include "../glm/gtx/transform.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
 #include "glew.h"
 #include "../glm/glm.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
@@ -12,6 +13,7 @@ using namespace std;
 
 class primative {
 public:
+	bool isSelected;
 	glm::vec4 origin;
 	glm::vec3 color;
 
@@ -20,6 +22,7 @@ public:
 	vector<float> cbo;
 	vector<float> nbo;
 	vector<glm::vec4> points;
+	virtual void constructBuffers();
 	void drawPrimative(unsigned int _vbo, unsigned int _cbo, unsigned int _ibo, unsigned int _nbo, unsigned int positionLocation,
 		unsigned int colorLocation, unsigned int normalLocation, unsigned int u_modelMatrixLocation, glm::mat4 modelView);
 };
@@ -35,15 +38,26 @@ public:
 };
 
 class sphere : public primative {
-private: 
+private:
+	struct face {
+		int ind1;
+		int ind2;
+		int ind3;
+		face(int i1, int i2, int i3) {
+			ind1 = i1;
+			ind2 = i2;
+			ind3 = i3;
+		}
+	};
 	int getMidPoint(int a, int b);
 	vector<glm::vec4> icoPoints;
+	vector<face> faces2;
 public:
 	int rings;
 	int sectors;
 	float radius;
 	sphere();
-	sphere(glm::vec3 _origin, glm::vec3 _color,glm::vec2 dimensions);
+	sphere(glm::vec3 _origin, glm::vec3 _color,float radius);
 	// Constructs the buffers to be passed out
 	void constructBuffers();
 

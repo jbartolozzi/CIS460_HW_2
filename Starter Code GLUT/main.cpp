@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <time.h>
-#include "furniture.h"
+#include "sceneGraph.h"
 
 using namespace glm;
 
@@ -52,7 +52,9 @@ void cleanup(void);
 void createRedSquare(mat4);
 void createBlueSquare(mat4);
 void createFloor(mat4 modelView);
-void createObject(mat4 modelView);
+void createObject();
+
+sceneGraph* myScene;
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -65,6 +67,9 @@ int main(int argc, char** argv) {
 	glewInit();
 
 	init();
+	sceneGraph *sc1 = new sceneGraph(argv[1]);
+	myScene = sc1;
+
 	glutDisplayFunc(display);
 	glutReshapeFunc(resize);
 	glutKeyboardFunc(keypress);
@@ -153,6 +158,7 @@ void init() {
 
 	resize(640, 480);
 	old = clock();
+	createObject();
 }
 
 void cleanup() {
@@ -180,6 +186,10 @@ void keypress(unsigned char key, int x, int y) {
 		glUniform3fv(lightLocation,1,&lightPos[0]);
 		glutPostRedisplay();
 		break;
+	case 'n':
+		myScene->goToNextNode();
+		glutPostRedisplay();
+		break;
 	}
 	glutPostRedisplay();
 }
@@ -203,15 +213,13 @@ void display() {
 								//like Norm mentioned in his Scene Graph lecture
 	//createBlueSquare(modelView);
 	modelView = glm::rotate(modelView, rotation, glm::vec3(0, 1, 0));
-	chair *floor1 = new chair();
-	sphere *s1 = new sphere();
-	ffloor *fack = new ffloor();
-	//fack->draw(vbo,cbo,ibo,nbo,positionLocation,colorLocation,normalLocation,u_modelMatrixLocation,modelView); 
-	//floor1->draw(vbo,cbo,ibo,nbo,positionLocation,colorLocation,normalLocation,u_modelMatrixLocation,modelView);
-	s1->drawPrimative(vbo,cbo,ibo,nbo,positionLocation,colorLocation,normalLocation,u_modelMatrixLocation,modelView);
-	//createObject(modelView);
+	myScene->root->traverse(vbo, cbo, ibo, nbo, positionLocation,colorLocation,normalLocation, u_modelMatrixLocation, modelView);
 	glutSwapBuffers();
 	old = newTime;
+}
+
+void createObject() {
+	
 }
 
 void createRedSquare(mat4 modelView) {
